@@ -34,7 +34,7 @@ import com.swirlds.platform.Utilities;
  * a string, and the state is just a list of the strings in all the transactions handled so far, in the
  * order that they were handled.
  */
-public class OracleRandomState implements SwirldState {
+public class RandomOracleState implements SwirldState {
 	/**
 	 * The shared state is just a list of the strings in all transactions, listed in the order received
 	 * here, which will eventually be the consensus order of the community.
@@ -102,7 +102,7 @@ public class OracleRandomState implements SwirldState {
 
 	@Override
 	public synchronized FastCopyable copy() {
-		OracleRandomState copy = new OracleRandomState();
+		RandomOracleState copy = new RandomOracleState();
 		copy.copyFrom(this);
 		return copy;
 	}
@@ -129,10 +129,10 @@ public class OracleRandomState implements SwirldState {
 
 	@Override
 	public synchronized void copyFrom(SwirldState old) {
-		strings = new ArrayList<String>(((OracleRandomState) old).strings);
-		services = new HashMap<String, String>(((OracleRandomState) old).services);
-		balances = new HashMap<String, Integer>(((OracleRandomState) old).balances);
-		addressBook = ((OracleRandomState) old).addressBook.copy();
+		strings = new ArrayList<String>(((RandomOracleState) old).strings);
+		services = new HashMap<String, String>(((RandomOracleState) old).services);
+		balances = new HashMap<String, Integer>(((RandomOracleState) old).balances);
+		addressBook = ((RandomOracleState) old).addressBook.copy();
 	}
 
 	@Override

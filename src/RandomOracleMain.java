@@ -28,7 +28,7 @@ import com.swirlds.platform.SwirldState;
  * into a busy loop (checking once a second) to see when the state gets the transaction. When it does, it
  * prints it, too.
  */
-public class OracleRandomMain implements SwirldMain {
+public class RandomOracleMain implements SwirldMain {
 	/** the platform running this app */
 	public Platform platform;
 	/** ID number for this member */
@@ -36,19 +36,7 @@ public class OracleRandomMain implements SwirldMain {
 	/** a console window for text output */
 	public Console console;
 	/** sleep this many milliseconds after each sync */
-	public final int sleepPeriod = 100;
-	/** a GUI window */
-	public  javax.swing.JFrame window;
-	/** a GUI window */
-	public  Integer numberOfTokens;
-	/** a GUI window */
-	public  String serviceToOffer;
-	/** Initial balances */
-	public  Integer initialBalances;
-	/** a console window for errors */
-	public Console logconsole;
 	
-
 	
 	
 	/**
@@ -74,24 +62,22 @@ public class OracleRandomMain implements SwirldMain {
 		this.platform = platform;
 		this.selfId = id;
 		//this.console = platform.createConsole(true); // create the window, make it visible
-		this.logconsole = platform.createConsole(true); // create the window, make it visible
+		this.console = platform.createConsole(true); // create the window, make it visible
 
 		String[] pars = platform.getParameters();
-		initialBalances = Integer.parseInt(pars[0]);
 		
-		platform.setAbout("Hello TimeBank v. 1.0\n"); // set the browser's "about" box
-		platform.setSleepAfterSync(sleepPeriod);
+		platform.setAbout("Decentralized Oracle v. 0.1\n"); // set the browser's "about" box
 		//this.window = platform.createWindow(true);		
 		//initWindow();
 
 	}	
 
 	protected void LogException(Exception e) {
-		logconsole.out.println(e.toString() + " " +  e.getMessage() + " ");
+		console.out.println(e.toString() + " " +  e.getMessage() + " ");
 	}
 	
 	protected void LogMessage(String message) {
-		logconsole.out.println(message);
+		console.out.println(message);
 	}
 
 	
@@ -100,17 +86,11 @@ public class OracleRandomMain implements SwirldMain {
 		try {
 		String myName = platform.getState().getAddressBookCopy()
 				.getAddress(selfId).getSelfName();
-		serviceToOffer = platform.getState().getAddressBookCopy()
-				.getAddress(selfId).getNickname();
 
 		
-		logconsole.out.println("Time Bank Demo v.01");
-		logconsole.out.println("USER: " + myName + "");
-		logconsole.out.println("Service to offer: " + 	serviceToOffer + "");
-		logconsole.out.println("");
-		logconsole.out.println("Service DB syncronising:");
+		console.out.println("Decentralized Random Oracle v.0.1");
 
-		String addInitBlance = "initbalance name:" + myName + " balance: " +  initialBalances + "";
+/*		String addInitBlance = "initbalance name:" + myName + " balance: " +  initialBalances + "";
 		byte[] addInitBlancetransaction = addInitBlance.getBytes(StandardCharsets.UTF_8);
 		platform.createTransaction(addInitBlancetransaction);
 
@@ -119,7 +99,7 @@ public class OracleRandomMain implements SwirldMain {
 		platform.createTransaction(addServicetransaction);
 			
 		
-/*		String lastReceivedBalance = "";
+		String lastReceivedBalance = "";
 		String lastReceivedServiceDB = "";
 		
 		boolean called = false;
@@ -165,45 +145,9 @@ public class OracleRandomMain implements SwirldMain {
 
 	@Override
 	public SwirldState newState() {
-		return new OracleRandomState();
+		return new RandomOracleState();
 	}
 	
-	
-	protected void initWindow(){
-		
-		try {
-		// label 1
-			Integer i = 0;
-			Integer j = 1;
-			j = j/i;
-			
-			Container c = window.getContentPane();
-			Label titleLbl = new Label ();		
-			Font font = titleLbl.getFont();
-			// same font but bold
-			//Font boldFont = new Font(font.getFontName(), Font.BOLD, font.getSize());
-			//titleLbl.setFont(boldFont);
-			titleLbl.setText("Timebank Demo");				
-			window.add(titleLbl, BorderLayout.AFTER_LAST_LINE);
-			
-			// label 2
-			String myName = platform.getState().getAddressBookCopy()
-					.getAddress(selfId).getSelfName();
-			Label nameLbl = new Label ();
-			nameLbl.setText("User Name" + myName);
-			window.add(nameLbl, BorderLayout.AFTER_LAST_LINE);
-			
-			// label 3
-			Label listLbl = new Label ();
-			listLbl.setText("List of services:");
-			window.add(listLbl,  BorderLayout.AFTER_LAST_LINE);
-		}
-		catch(Exception e){
-			LogException(e);
-		}
-		
-		
-	}
 
 	
 }
