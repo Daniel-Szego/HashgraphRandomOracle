@@ -16,6 +16,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Label;
 import java.nio.charset.StandardCharsets;
+import java.util.Random;
 
 import com.swirlds.platform.Browser;
 import com.swirlds.platform.Console;
@@ -36,9 +37,8 @@ public class RandomOracleMain implements SwirldMain {
 	/** a console window for text output */
 	public Console console;
 	/** sleep this many milliseconds after each sync */
-	
-	
-	
+	public final int sleepPeriod = 100;
+		
 	/**
 	 * This is just for debugging: it allows the app to run in Eclipse. If the config.txt exists and lists a
 	 * particular SwirldMain class as the one to run, then it can run in Eclipse (with the green triangle
@@ -67,8 +67,7 @@ public class RandomOracleMain implements SwirldMain {
 		String[] pars = platform.getParameters();
 		
 		platform.setAbout("Decentralized Oracle v. 0.1\n"); // set the browser's "about" box
-		//this.window = platform.createWindow(true);		
-		//initWindow();
+		platform.setSleepAfterSync(sleepPeriod);
 
 	}	
 
@@ -79,65 +78,43 @@ public class RandomOracleMain implements SwirldMain {
 	protected void LogMessage(String message) {
 		console.out.println(message);
 	}
-
 	
 	@Override
 	public void run() {
 		try {
-		String myName = platform.getState().getAddressBookCopy()
-				.getAddress(selfId).getSelfName();
-
-		
-		console.out.println("Decentralized Random Oracle v.0.1");
-
-/*		String addInitBlance = "initbalance name:" + myName + " balance: " +  initialBalances + "";
-		byte[] addInitBlancetransaction = addInitBlance.getBytes(StandardCharsets.UTF_8);
-		platform.createTransaction(addInitBlancetransaction);
-
-		String addService = "addservice name:" + myName + " service: " +  serviceToOffer + "";
-		byte[] addServicetransaction = addService.getBytes(StandardCharsets.UTF_8);
-		platform.createTransaction(addServicetransaction);
-			
-		
-		String lastReceivedBalance = "";
-		String lastReceivedServiceDB = "";
-		
-		boolean called = false;
-		
-		while (true) {
-			TimeBankDemoState state = (TimeBankDemoState) platform
-					.getState();
-			String receivedBalance = state.getReceivedBalances();
-			String serviceDB =  state.getReceivedServiceDB();
-			Integer differenceExistedBalance = 0;
-			Integer differenceExistedService = 0;
-			
-			if (!lastReceivedBalance.equals(receivedBalance)) {
-				lastReceivedBalance = receivedBalance;
-				logconsole.out.println("Balances: " + receivedBalance); // print all received transactions
-				differenceExistedBalance +=1;
-			}
-			if(!lastReceivedServiceDB.equals(serviceDB)) {
-				lastReceivedServiceDB = serviceDB;
-				logconsole.out.println("Services: " + serviceDB); // print all received transactions
-				differenceExistedService +=1;
-			}	
-			if (lastReceivedServiceDB.equals(serviceDB) && lastReceivedBalance.equals(receivedBalance) && !called && (differenceExistedService > 0) && (differenceExistedBalance > 0)){
-				String useService = "useservice name:" + myName + " service: " +  serviceToOffer + "";
-				byte[] useServicetransaction = useService.getBytes(StandardCharsets.UTF_8);
-				platform.createTransaction(useServicetransaction);		
-				logconsole.out.println("Calling Service " + myName + " " + serviceToOffer);
-				called = true;
-			}
-
+			String myName = platform.getState().getAddressBookCopy()
+					.getAddress(selfId).getSelfName();
 	
-			try {
-				Thread.sleep(sleepPeriod);
-			} catch (Exception e) {
-				LogException(e);
+			
+			console.out.println("Decentralized Random Oracle v.0.1");	
+			console.out.println("My name is " + myName);
+			
+			Random rand = new Random();
+			int  n = rand.nextInt(50000) + 1;
+	
+			console.out.println("Choosen Random is " + n);
+			String transactionString = myName + " - " + n;	
+			byte[] transaction = transactionString.getBytes(StandardCharsets.UTF_8);
+			
+			platform.createTransaction(transaction);
+			String lastReceived = "";
+		
+			while (true) {
+				RandomOracleState state = (RandomOracleState) platform
+						.getState();
+				String received = state.getReceived();				
+				
+				if (!lastReceived.equals(received)) {
+					lastReceived = received;
+					console.out.println("Received: " + received); // print all received transactions
+				}
+				try {
+					Thread.sleep(sleepPeriod);
+				} catch (Exception e) {
+					LogException(e);
+				}
 			}
-		}
-		*/
+
 		} catch(Exception e){
 			LogException(e);
 		}

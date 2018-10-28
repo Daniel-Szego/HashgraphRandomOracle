@@ -150,8 +150,8 @@ public class RandomOracleState implements SwirldState {
 		
 		try {
 			String transactionString = new String(transaction, StandardCharsets.UTF_8);
-			String name = transactionString.substring(0, transactionString.indexOf("-") -2 );
-			String integerString = transactionString.substring(transactionString.indexOf("-") + 1, transactionString.length());		
+			String name = transactionString.substring(0, transactionString.indexOf("-")-1 );
+			String integerString = transactionString.substring(transactionString.indexOf("-") + 2, transactionString.length());		
 			randoms.put(name, new Integer(integerString));
 			
 		} catch (Exception e) {
