@@ -35,62 +35,45 @@ import com.swirlds.platform.Utilities;
  * order that they were handled.
  */
 public class RandomOracleState implements SwirldState {
-	/**
-	 * The shared state is just a list of the strings in all transactions, listed in the order received
-	 * here, which will eventually be the consensus order of the community.
-	 */
-	private List<String> strings = new ArrayList<String>();
+
+	// SHARED STATE
+	//shared state is a map of identifier -> integers (random number) 
+ 	private Map<String, Integer> randoms = new HashMap<String, Integer>();
+	
 	/** names and addresses of all members */
 	private AddressBook addressBook;
 
-	//service database 
- 	private Map<String, String> services = new HashMap<String, String>();
-
-	//balances 
- 	private Map<String, Integer> balances = new HashMap<String, Integer>();
-
-	/** @return all the strings received so far from the network */
-	public synchronized List<String> getStrings() {
-		return strings;
+	/** @return all the state information received so far from the network */
+	public synchronized Map<String, Integer> getState() {
+		return randoms;
 	}
 
 	
 	
 	/** @return all the strings received so far from the network, concatenated into one */
 	public synchronized String getReceived() {
-		return strings.toString();
+		String result = "";
+		for (Map.Entry<String, Integer> entry : randoms.entrySet())
+		{
+			String key = entry.getKey();
+			Integer value = entry.getValue();
+			result += key + " " + value.toString() + " ";
+		}
+		return result;
 	}
 	
-	public synchronized String getReceivedBalances() {
-		   String fullState = "";
-		   
-		   Iterator it = balances.entrySet().iterator();
-		    while (it.hasNext()) {
-		        Map.Entry pair = (Map.Entry)it.next();
-		        String key = pair.getKey().toString();
-		        String value = pair.getValue().toString();
-		        fullState += key + " " + value + " ";
-		    }
-		    return fullState;	
-	}
-
-	public synchronized String getReceivedServiceDB() {
-		   String fullState = "";
-		
-		   Iterator its = services.entrySet().iterator();
-		    while (its.hasNext()) {
-		        Map.Entry pairs = (Map.Entry)its.next();
-		        String key = pairs.getKey().toString();
-		        String value = pairs.getValue().toString();
-		        fullState += key + " " + value + " ";
-		    }
-		return fullState;	
-	}
 	
 
 	/** @return the same as getReceived, so it returns the entire shared state as a single string */
 	public synchronized String toString() {
-		return strings.toString();
+		String result = "";
+		for (Map.Entry<String, Integer> entry : randoms.entrySet())
+		{
+			String key = entry.getKey();
+			Integer value = entry.getValue();
+			result += key + " " + value.toString() + " ";
+		}
+		return result;	
 	}
 
 	// ///////////////////////////////////////////////////////////////////
@@ -110,8 +93,25 @@ public class RandomOracleState implements SwirldState {
 	@Override
 	public synchronized void copyTo(FCDataOutputStream outStream) {
 		try {
-			Utilities.writeStringArray(outStream,
-					strings.toArray(new String[0]));
+			List<String> stringArray = new ArrayList<String>();
+			List<Integer> intArray = new ArrayList<Integer>();
+			
+			for (Map.Entry<String, Integer> entry : randoms.entrySet())
+			{
+				String key = entry.getKey();
+				Integer value = entry.getValue();
+				stringArray.add(key);
+				intArray.add(value);
+			}
+
+			Utilities.writeStringArray(outStream, 
+					stringArray.toArray(new String[0]));
+
+			int[] intArray2 = intArray.stream().mapToInt(i->i).toArray();
+
+			Utilities.writeIntArray(outStream,
+					intArray2);
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -120,8 +120,19 @@ public class RandomOracleState implements SwirldState {
 	@Override
 	public synchronized void copyFrom(FCDataInputStream inStream) {
 		try {
-			strings = new ArrayList<String>(
+			List<String> stringArray = new ArrayList<String>(
 					Arrays.asList(Utilities.readStringArray(inStream)));
+			
+			int[] intArray = Utilities.readIntArray(inStream);
+			
+			if (stringArray.size() != intArray.length) {
+				throw new IOException("Size mismatch");	
+			}
+			
+			for (int i = 0; i < stringArray.size(); i ++) {
+				String key = stringArray.get(i);
+				randoms.put(key, new Integer(intArray[i]));				
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -129,9 +140,7 @@ public class RandomOracleState implements SwirldState {
 
 	@Override
 	public synchronized void copyFrom(SwirldState old) {
-		strings = new ArrayList<String>(((RandomOracleState) old).strings);
-		services = new HashMap<String, String>(((RandomOracleState) old).services);
-		balances = new HashMap<String, Integer>(((RandomOracleState) old).balances);
+		randoms = new HashMap<String, Integer>(((RandomOracleState)old).randoms);
 		addressBook = ((RandomOracleState) old).addressBook.copy();
 	}
 
@@ -141,22 +150,10 @@ public class RandomOracleState implements SwirldState {
 		
 		try {
 			String transactionString = new String(transaction, StandardCharsets.UTF_8);
+			String name = transactionString.substring(0, transactionString.indexOf("-") -2 );
+			String integerString = transactionString.substring(transactionString.indexOf("-") + 1, transactionString.length());		
+			randoms.put(name, new Integer(integerString));
 			
-			if (transactionString.startsWith("addservice")){
-					String name = transactionString.substring(transactionString.indexOf("name:") + 5, transactionString.indexOf("service:") - 1);
-					String serviceName = transactionString.substring(transactionString.indexOf("service:") + 9);
-					services.put(name, serviceName);									
-			}else if (transactionString.startsWith("useservice")) {
-				String name = transactionString.substring(transactionString.indexOf("name:") + 5, transactionString.indexOf("service:") - 1);
-				String serviceName = transactionString.substring(transactionString.indexOf("service:") + 9);
-				balances.put(name, balances.get(name) - 1);		
-			}else if (transactionString.startsWith("initbalance")) {
-					String name = transactionString.substring(transactionString.indexOf("name:") + 5, transactionString.indexOf("balance:") - 1);
-					Integer balance = Integer.parseInt(transactionString.substring(transactionString.indexOf("balance:") + 9));
-					balances.put(name, balance);					
-			}else{	
-				strings.add(new String(transaction, StandardCharsets.UTF_8));	
-			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
