@@ -16,6 +16,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Label;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.Random;
 
 import com.swirlds.platform.Browser;
@@ -23,6 +24,7 @@ import com.swirlds.platform.Console;
 import com.swirlds.platform.Platform;
 import com.swirlds.platform.SwirldMain;
 import com.swirlds.platform.SwirldState;
+import java.math.BigInteger;
 
 /**
  * This HelloSwirld creates a single transaction, consisting of the string "Hello Swirld", and then goes
@@ -38,8 +40,12 @@ public class RandomOracleMain implements SwirldMain {
 	public Console console;
 	/** sleep this many milliseconds after each sync */
 	public final int sleepPeriod = 100;
-	/** number of nodes */
+	/** number of rounds after the calculation starts */
+	/** it has to be replaced by the real consensus event */
 	public final int calculatingStarts = 50;
+	/** random number is find in this range*/
+	public final int randomRange = 50000;
+	
 		
 	/**
 	 * This is just for debugging: it allows the app to run in Eclipse. If the config.txt exists and lists a
@@ -91,8 +97,9 @@ public class RandomOracleMain implements SwirldMain {
 			console.out.println("Decentralized Random Oracle v.0.1");	
 			console.out.println("My name is " + myName);
 			
+			// THOS MUST BE A CRYPTOGRAPHICALLY SECURE RANDOM GENERATOR ON A LONG RUN
 			Random rand = new Random();
-			int  n = rand.nextInt(50000) + 1;
+			int  n = rand.nextInt(randomRange) + 1;
 	
 			console.out.println("Choosen Random is " + n);
 			String transactionString = myName + " - " + n;	
@@ -110,6 +117,7 @@ public class RandomOracleMain implements SwirldMain {
 				rounds++;					
 				
 				// THIS MUST BE THE REACHING CONSENSUS EVENT
+				// REPLACE IN REAL IMPLEMENTATIONS
 				if (rounds >= calculatingStarts - 1) {
 					stateString = received;
 					break;
@@ -128,6 +136,13 @@ public class RandomOracleMain implements SwirldMain {
 			
 			console.out.println("Calculating random number"); // print all received transactions			
 			
+			// RANDOM ORACLE ALGORITHM MIGHT BE REVISITED
+			// IF IT IS CRYPTOGRAPHICALLY SECURE
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			byte[] hash = digest.digest(stateString.getBytes(StandardCharsets.UTF_8));
+			int bigIntegerValue = new BigInteger(hash).intValue();
+			int result = bigIntegerValue % randomRange;
+			console.out.println("Random number : " + result);
 			
 		} catch(Exception e){
 			LogException(e);
