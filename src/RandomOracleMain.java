@@ -17,6 +17,7 @@ import java.awt.Font;
 import java.awt.Label;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.util.Random;
 
 import com.swirlds.platform.Browser;
@@ -97,10 +98,10 @@ public class RandomOracleMain implements SwirldMain {
 			console.out.println("Decentralized Random Oracle v.0.1");	
 			console.out.println("My name is " + myName);
 			
-			// THOS MUST BE A CRYPTOGRAPHICALLY SECURE RANDOM GENERATOR ON A LONG RUN
-			Random rand = new Random();
-			int  n = rand.nextInt(randomRange) + 1;
-	
+			// this is cryptographically secure
+			SecureRandom secRan = new SecureRandom();
+		  	int n = secRan.nextInt() % randomRange;
+					  	
 			console.out.println("Choosen Random is " + n);
 			String transactionString = myName + " - " + n;	
 			byte[] transaction = transactionString.getBytes(StandardCharsets.UTF_8);
