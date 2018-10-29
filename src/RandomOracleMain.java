@@ -38,6 +38,8 @@ public class RandomOracleMain implements SwirldMain {
 	public Console console;
 	/** sleep this many milliseconds after each sync */
 	public final int sleepPeriod = 100;
+	/** number of nodes */
+	public final int calculatingStarts = 50;
 		
 	/**
 	 * This is just for debugging: it allows the app to run in Eclipse. If the config.txt exists and lists a
@@ -98,11 +100,20 @@ public class RandomOracleMain implements SwirldMain {
 			
 			platform.createTransaction(transaction);
 			String lastReceived = "";
-		
+			
+			int rounds = 0;
+			String stateString = "";
 			while (true) {
 				RandomOracleState state = (RandomOracleState) platform
 						.getState();
 				String received = state.getReceived();				
+				rounds++;					
+				
+				// THIS MUST BE THE REACHING CONSENSUS EVENT
+				if (rounds >= calculatingStarts - 1) {
+					stateString = received;
+					break;
+				}	
 				
 				if (!lastReceived.equals(received)) {
 					lastReceived = received;
@@ -114,7 +125,10 @@ public class RandomOracleMain implements SwirldMain {
 					LogException(e);
 				}
 			}
-
+			
+			console.out.println("Calculating random number"); // print all received transactions			
+			
+			
 		} catch(Exception e){
 			LogException(e);
 		}
